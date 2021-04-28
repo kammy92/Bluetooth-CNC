@@ -3,5 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation"
-    app:startDestination="@+id/plasmaBankFragment">
+    app:startDestination="@+id/homeFragment">
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.karman.bluetoothcnc.view.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+    </fragment>
+
+    <fragment
+        android:id="@+id/operationListFragment"
+        android:name="com.karman.bluetoothcnc.view.OperationListFragment"
+        android:label="Operations"
+        tools:layout="@layout/fragment_operation_list" />
 </navigation>
