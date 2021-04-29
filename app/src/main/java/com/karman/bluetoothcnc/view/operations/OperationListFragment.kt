@@ -1,4 +1,4 @@
-package com.karman.bluetoothcnc.view
+package com.karman.bluetoothcnc.view.operations
 
 import android.content.Context
 import android.os.Bundle
