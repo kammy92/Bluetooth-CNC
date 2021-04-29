@@ -11,7 +11,9 @@ import android.os.Looper
 import android.os.Message
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -118,29 +120,137 @@ Second most important piece of Code. GUI Handler
         }
 
         dataBinding!!.tvSendData.setOnClickListener {
-            var cmdText: String? = null
-
-            val listType = object : TypeToken<List<Operation?>?>() {}.type
-
             val operationList: ArrayList<Operation> = ArrayList<Operation>()
-            operationList.add(Operation(0, 1, 255, 3000, 1, 1, 0))
-            operationList.add(Operation(0, 2, 255, 2000, 1, 2, 0))
-            operationList.add(Operation(0, 1, 255, 3000, 0, 1, 0))
-            operationList.add(Operation(0, 2, 255, 2000, 0, 2, 0))
-            operationList.add(Operation(0, 1, 255, 3000, 1, 1, 0))
-            operationList.add(Operation(0, 2, 255, 2000, 1, 2, 0))
-            operationList.add(Operation(0, 1, 255, 3000, 0, 1, 0))
-            operationList.add(Operation(0, 2, 255, 2000, 0, 2, 0))
+            operationList.add(Operation(0, 500, 5, 255, 3000, 1, 1, 500))
+            operationList.add(Operation(0, 500, 7, 255, 2000, 1, 2, 500))
+            operationList.add(Operation(0, 500, 9, 200, 500, 1, 1, 500))
+            operationList.add(Operation(0, 500, 12, 200, 1000, 0, 2, 500))
+            operationList.add(Operation(0, 500, 11, 200, 200, 1, 2, 500))
+            operationList.add(Operation(0, 500, 9, 200, 2000, 1, 1, 500))
+//            operationList.add(Operation(0, 500, 12, 150, 200, 0, 2, 500))
+//            operationList.add(Operation(0, 500, 6, 255, 5000, 0, 1, 500))
             val jsonObject = JSONObject()
             try {
-                jsonObject.put("op", JSONArray(Gson().toJson(operationList, listType)))
-                Log.e("karman", jsonObject.toString())
+                jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                        object : TypeToken<List<Operation?>?>() {}.type)))
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-            cmdText = "$jsonObject;"
-            connectedThread?.write(cmdText)
+            connectedThread?.write("$jsonObject;")
         }
+
+
+
+        dataBinding!!.tv1.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, 1, 255, 0, 1, 1, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, -1, 0, 0, -1, 1, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            }
+            false
+        })
+
+        dataBinding!!.tv2.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, 2, 255, 0, 0, 1, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, -1, 0, 0, -1, 1, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            }
+            false
+        })
+
+        dataBinding!!.tv3.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, 3, 255, 0, 1, 2, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, -1, 0, 0, -1, 2, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            }
+            false
+        })
+
+        dataBinding!!.tv4.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, 4, 255, 0, 0, 2, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                val operationList: ArrayList<Operation> = ArrayList<Operation>()
+                operationList.add(Operation(1, 0, -1, 0, 0, -1, 2, 0))
+                val jsonObject = JSONObject()
+                try {
+                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
+                            object : TypeToken<List<Operation?>?>() {}.type)))
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+                connectedThread?.write("$jsonObject;")
+            }
+            false
+        })
+
+
+
 
         sharedViewModel.onDeviceSelected.observe(homeActivity!!, EventObserver {
             homeViewModel.selectedDevice = it
@@ -245,7 +355,7 @@ Second most important piece of Code. GUI Handler
                     } else {
                         bytes++
                     }
-                } catch (e: IOException) {
+                } catch (e: Exception) {
                     e.printStackTrace()
                     break
                 }
