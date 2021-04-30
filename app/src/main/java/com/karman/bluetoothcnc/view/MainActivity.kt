@@ -9,6 +9,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.karman.bluetoothcnc.R
 import com.karman.bluetoothcnc.base.BaseActivity
 import com.karman.bluetoothcnc.databinding.ActivityMainBinding
+import com.karman.bluetoothcnc.listener.AppClickListener
 import kotlinx.android.synthetic.main.toolbar.view.*
 
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>

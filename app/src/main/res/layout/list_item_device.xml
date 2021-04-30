@@ -6,11 +6,15 @@
     <data>
 
         <variable
-            name="deviceItemClickListener"
-            type="com.karman.bluetoothcnc.listener.DeviceItemClickListener" />
+            name="itemClickListener"
+            type="com.karman.bluetoothcnc.base.BaseItemClickListener" />
 
         <variable
-            name="device"
+            name="position"
+            type="Integer" />
+
+        <variable
+            name="item"
             type="com.karman.bluetoothcnc.model.Device" />
     </data>
 
@@ -23,7 +27,7 @@
         android:background="@drawable/device_bg"
         android:clickable="true"
         android:focusable="true"
-        android:onClick="@{()->deviceItemClickListener.onDeviceItemClick(device)}">
+        android:onClick="@{()->itemClickListener.onItemClick(position,item)}">
 
         <TextView
             android:id="@+id/tv_device_name"
@@ -33,7 +37,7 @@
             android:layout_marginTop="14dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="8dp"
-            android:text="@{device.deviceName}"
+            android:text="@{item.deviceName}"
             android:textColor="#111111"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -50,7 +54,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="14dp"
-            android:text="@{device.deviceAddress}"
+            android:text="@{item.deviceAddress}"
             android:textColor="#111111"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"

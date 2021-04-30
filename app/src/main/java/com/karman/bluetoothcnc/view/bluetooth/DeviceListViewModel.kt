@@ -16,7 +16,7 @@ class DeviceListViewModel : BaseViewModel() {
         if (pairedDevices.size > 0) {
             // There are paired devices. Get the name and address of each paired device.
             for (device in pairedDevices) {
-                deviceList.value?.add(Device(device.name, device.address))
+                deviceList.value!!.add(Device(device.name, device.address))
             }
         }
 

@@ -15,10 +15,10 @@ import com.karman.bluetoothcnc.R
 import com.karman.bluetoothcnc.SharedViewModel
 import com.karman.bluetoothcnc.base.BaseFragment
 import com.karman.bluetoothcnc.databinding.FragmentHomeBinding
+import com.karman.bluetoothcnc.listener.AppClickListener
 import com.karman.bluetoothcnc.model.Operation
 import com.karman.bluetoothcnc.util.EventObserver
 import com.karman.bluetoothcnc.view.MainActivity
-import com.karman.bluetoothcnc.view.MainViewModel
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -37,15 +37,18 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
     var deviceConnectedThread: DeviceConnectedThread? = null
     var connectDeviceThread: ConnectDeviceThread? = null
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        dataBinding!!.tvText.setOnClickListener {
+    private val appClickListener = object : AppClickListener {
+        override fun onBluetoothConnectClick() {
             findNavController().navigate(
                     R.id.action_navigation_home_to_deviceListFragment
             )
             (baseActivity as MainActivity).shouldShowBottomNavigation(false)
         }
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        dataBinding!!.appClickListener = appClickListener
         dataBinding!!.tvSendData.setOnClickListener {
             val operationList: ArrayList<Operation> = ArrayList<Operation>()
             operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
@@ -68,13 +71,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
             val jsonObject = JSONObject()
             try {
                 jsonObject.put(
-                        "op", JSONArray(
-                        Gson().toJson(
-                                operationList,
-                                object : TypeToken<List<Operation?>?>() {}.type
-                        )
-                )
-                )
+                        "op", JSONArray(Gson().toJson(operationList,
+                        object : TypeToken<List<Operation?>?>() {}.type)))
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
@@ -242,7 +240,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
         sharedViewModel.onDeviceSelected.observe(baseActivity!!, EventObserver {
             viewModel.selectedDevice = it
             findNavController().popBackStack()
-            Log.e("karman", it.toString())
             viewModel.setConnectionStatus("Connecting to ${it.deviceName}")
             connectDeviceThread = ConnectDeviceThread(it.deviceAddress)
             connectDeviceThread!!.start()

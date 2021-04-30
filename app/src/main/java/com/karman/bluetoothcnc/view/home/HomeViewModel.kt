@@ -3,9 +3,9 @@ package com.karman.bluetoothcnc.view.home
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import androidx.databinding.ObservableBoolean
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.karman.bluetoothcnc.base.BaseViewModel
 import com.karman.bluetoothcnc.model.Device
 
@@ -17,6 +17,8 @@ class HomeViewModel : BaseViewModel() {
     val connectionStatus: LiveData<String> = _connectionStatus
     private val _deviceStatus = MutableLiveData<String>()
     val deviceStatus: LiveData<String> = _deviceStatus
+
+    var isConnectionSuccessful = ObservableBoolean(false)
 
     var selectedDevice: Device? = null
 
@@ -34,9 +36,11 @@ class HomeViewModel : BaseViewModel() {
                         HomeFragment.CONNECTION_SUCCESSFUL -> {
                             _connectionStatus.value =
                                     "Connected to ${selectedDevice?.deviceName}"
+                            isConnectionSuccessful.set(true)
                         }
                         HomeFragment.CONNECTION_FAILED -> {
                             _connectionStatus.value = "Device fails to connect"
+                            isConnectionSuccessful.set(false)
                         }
                     }
                     HomeFragment.MESSAGE_READ -> {

@@ -14,6 +14,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.RecyclerView
+import com.karman.bluetoothcnc.base.BaseAdapter
+import com.karman.bluetoothcnc.base.BaseItemClickListener
+
+fun <T> RecyclerView.setUpWithBaseAdapter(layoutResId: Int,
+        itemList: List<T>, itemClickListener: BaseItemClickListener<T>) {
+    this.itemAnimator = DefaultItemAnimator()
+    this.setHasFixedSize(true)
+    this.adapter = BaseAdapter(layoutResId, itemList, itemClickListener)
+}
 
 /** Convenience for callbacks/listeners whose return value indicates an event was consumed. */
 inline fun consume(f: () -> Unit): Boolean {
