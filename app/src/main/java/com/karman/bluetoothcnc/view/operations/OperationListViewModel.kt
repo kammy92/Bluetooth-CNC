@@ -2,9 +2,9 @@ package com.karman.bluetoothcnc.view.operations
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.karman.bluetoothcnc.base.BaseViewModel
 
-class OperationListViewModel : ViewModel() {
+class OperationListViewModel : BaseViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is Plasma Bank Fragment"

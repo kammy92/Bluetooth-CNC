@@ -13,7 +13,7 @@ void loop() {
     msg += mByte;
     if (mByte == ';') {
       msg = msg.substring(0, msg.length()-1);
-//      Serial.println("Message: " + msg);  
+//      Serial.println("Message: " + msg);
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, msg);
       JsonArray ops = doc["op"];

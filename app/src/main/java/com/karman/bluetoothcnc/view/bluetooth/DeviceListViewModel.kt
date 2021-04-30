@@ -2,10 +2,10 @@ package com.karman.bluetoothcnc.view.bluetooth
 
 import android.bluetooth.BluetoothAdapter
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.karman.bluetoothcnc.base.BaseViewModel
 import com.karman.bluetoothcnc.model.Device
 
-class DeviceListViewModel : ViewModel() {
+class DeviceListViewModel : BaseViewModel() {
 
     var deviceList: MutableLiveData<ArrayList<Device>> = MutableLiveData()
 

@@ -13,9 +13,8 @@ import com.google.gson.annotations.SerializedName
 // Operation Start Delay: Start Delay in ms
 // Operation End Delay: End Delay in ms
 class Operation(
-    @field:SerializedName("t") var type: Int,
-    @field:SerializedName("s") var speed: Int,
-    @field:SerializedName("d") var duration: Int,
-    @field:SerializedName("sd") var startDelay: Int,
-    @field:SerializedName("ed") var endDelay: Int
-)
+        @field:SerializedName("t") var operationType: Int,
+        @field:SerializedName("s") var operationSpeed: Int,
+        @field:SerializedName("d") var operationDuration: Int,
+        @field:SerializedName("sd") var operationStartDelay: Int,
+        @field:SerializedName("ed") var operationEndDelay: Int)

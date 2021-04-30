@@ -5,43 +5,39 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
-import com.karman.bluetoothcnc.HomeActivity
-import com.karman.bluetoothcnc.R
-import com.karman.bluetoothcnc.databinding.FragmentHomeBinding
-import com.karman.bluetoothcnc.view.home.HomeViewModel
+import com.karman.bluetoothcnc.BR
+import kotlin.reflect.KClass
 
-class BaseFragment<MyDataBinding : ViewDataBinding, MyViewModel : ViewModel> : Fragment() {
+abstract class BaseFragment<DataBinding : ViewDataBinding, ViewModel : androidx.lifecycle.ViewModel>
+(@LayoutRes private val layoutResourceId: Int, private val viewModelClass: KClass<ViewModel>) :
+        Fragment() {
+    var baseActivity: BaseActivity<*, *>? = null
+    var dataBinding: DataBinding? = null
+    lateinit var viewModel: ViewModel
 
-    var viewDataBinding: MyDataBinding? = null
-        private set
-    private var mViewModel: MyViewModel? = null
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is BaseActivity<*, *>) {
+            this.baseActivity = context
+        }
+    }
 
-//    private lateinit var viewModel:T
-//    private var dataBinding: FragmentHomeBinding? = null
-//    private var homeActivity: HomeActivity? = null
-//    override fun onAttach(context: Context) {
-//        super.onAttach(context)
-//        homeActivity = context as HomeActivity
-//    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?): View? {
+        dataBinding = DataBindingUtil.inflate(inflater, layoutResourceId, container, false)
+        dataBinding?.lifecycleOwner = viewLifecycleOwner
+        viewModel = ViewModelProviders.of(this).get(viewModelClass.java)
+        dataBinding?.setVariable(BR.viewModel, viewModel)
+        return dataBinding?.root ?: inflater.inflate(layoutResourceId, container, false)
+    }
 
-//    override fun onCreateView(
-//        inflater: LayoutInflater, container: ViewGroup?,
-//        savedInstanceState: Bundle?
-//    ): View {
-//        dataBinding =
-//            DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
-//        viewModel = ViewModelProviders.of(this).get(T::class.java)
-//        dataBinding!!.viewModel = viewModel
-//        return dataBinding!!.root
-//    }
-
-//    override fun onDetach() {
-//        super.onDetach()
-//        homeActivity = null
-//    }
+    override fun onDetach() {
+        baseActivity = null
+        super.onDetach()
+    }
 }
