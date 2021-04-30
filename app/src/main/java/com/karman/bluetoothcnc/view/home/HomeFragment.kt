@@ -4,11 +4,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothSocket
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -44,62 +40,14 @@ class HomeFragment : Fragment() {
     private var dataBinding: FragmentHomeBinding? = null
     private var homeActivity: HomeActivity? = null
 
-    var handler: Handler? = null
-    var mmSocket: BluetoothSocket? = null
-    var connectedThread: ConnectedThread? = null
-    var createConnectThread: CreateConnectThread? = null
+    var mBluetoothSocket: BluetoothSocket? = null
 
-    private val CONNECTING_STATUS = 1 // used in bluetooth handler to identify message status
-
-    private val MESSAGE_READ = 2 // used in bluetooth handler to identify message update
+    var deviceConnectedThread: DeviceConnectedThread? = null
+    var connectDeviceThread: ConnectDeviceThread? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         homeActivity = context as HomeActivity
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        /*
-Second most important piece of Code. GUI Handler
- */
-        handler =
-                object : Handler(Looper.getMainLooper()) {
-                    override fun handleMessage(msg: Message) {
-                        when (msg.what) {
-                            CONNECTING_STATUS -> when (msg.arg1) {
-                                1 -> {
-                                    homeViewModel.setConnectionStatus(
-                                            "Connected to ${homeViewModel.selectedDevice?.deviceName}")
-
-//                                toolbar.setSubtitle("Connected to $deviceName")
-//                                progressBar.setVisibility(View.GONE)
-//                                buttonConnect.setEnabled(true)
-//                                buttonToggle.setEnabled(true)
-                                }
-                                -1 -> {
-                                    homeViewModel.setConnectionStatus("Device fails to connect")
-//                                toolbar.setSubtitle("Device fails to connect")
-//                                progressBar.setVisibility(View.GONE)
-//                                buttonConnect.setEnabled(true)
-                                }
-                            }
-                            MESSAGE_READ -> {
-                                val arduinoMsg = msg.obj.toString() // Read message from Arduino
-                                when (arduinoMsg.toLowerCase()) {
-                                    "led is turned on" -> {
-//                                    imageView.setBackgroundColor(resources.getColor(R.color.colorOn))
-//                                    textViewInfo.setText("Arduino Message : $arduinoMsg")
-                                    }
-                                    "led is turned off" -> {
-//                                    imageView.setBackgroundColor(resources.getColor(R.color.colorOff))
-//                                    textViewInfo.setText("Arduino Message : $arduinoMsg")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -116,27 +64,43 @@ Second most important piece of Code. GUI Handler
         super.onViewCreated(view, savedInstanceState)
         dataBinding!!.tvText.setOnClickListener {
             findNavController().navigate(
-                    R.id.action_navigation_home_to_deviceListFragment)
+                    R.id.action_navigation_home_to_deviceListFragment
+            )
         }
 
         dataBinding!!.tvSendData.setOnClickListener {
             val operationList: ArrayList<Operation> = ArrayList<Operation>()
-            operationList.add(Operation(0, 500, 5, 255, 3000, 1, 1, 500))
-            operationList.add(Operation(0, 500, 7, 255, 2000, 1, 2, 500))
-            operationList.add(Operation(0, 500, 9, 200, 500, 1, 1, 500))
-            operationList.add(Operation(0, 500, 12, 200, 1000, 0, 2, 500))
-            operationList.add(Operation(0, 500, 11, 200, 200, 1, 2, 500))
-            operationList.add(Operation(0, 500, 9, 200, 2000, 1, 1, 500))
-//            operationList.add(Operation(0, 500, 12, 150, 200, 0, 2, 500))
-//            operationList.add(Operation(0, 500, 6, 255, 5000, 0, 1, 500))
+            operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
+            operationList.add(Operation(TOOL_FORWARD, 255, 2000, 300, 300))
+            operationList.add(Operation(UNIT_FORWARD, 180, 300, 300, 300))
+            operationList.add(Operation(TOOL_BACKWARD, 180, 700, 300, 300))
+            operationList.add(Operation(TOOL_FORWARD, 180, 200, 300, 300))
+            operationList.add(Operation(UNIT_FORWARD, 180, 2000, 300, 300))
+            operationList.add(Operation(TOOL_BACKWARD, 180, 300, 300, 300))
+            operationList.add(Operation(UNIT_BACKWARD, 255, 5000, 300, 300))
+
+//            operationList.add(Operation( 5, 255, 3000, 1, 1, 500))
+//            operationList.add(Operation( 7, 255, 2000, 1, 2, 500))
+//            operationList.add(Operation( 9, 200, 500, 1, 1, 500))
+//            operationList.add(Operation( 12, 200, 1000, 0, 2, 500))
+//            operationList.add(Operation(0, 500, 11, 200, 200, 1, 2, 500))
+//            operationList.add(Operation(0, 500, 9, 200, 2000, 1, 1, 500))
+////            operationList.add(Operation(0, 500, 12, 200, 200, 0, 2, 500))
+////            operationList.add(Operation(0, 500, 6, 255, 5000, 0, 1, 500))
             val jsonObject = JSONObject()
             try {
-                jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                        object : TypeToken<List<Operation?>?>() {}.type)))
+                jsonObject.put(
+                        "op", JSONArray(
+                        Gson().toJson(
+                                operationList,
+                                object : TypeToken<List<Operation?>?>() {}.type
+                        )
+                )
+                )
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-            connectedThread?.write("$jsonObject;")
+            deviceConnectedThread?.write("$jsonObject;")
         }
 
 
@@ -144,26 +108,38 @@ Second most important piece of Code. GUI Handler
         dataBinding!!.tv1.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, 1, 255, 0, 1, 1, 0))
+                operationList.add(Operation(UNIT_FORWARD, 255, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             } else if (event.action == MotionEvent.ACTION_UP) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, -1, 0, 0, -1, 1, 0))
+                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             }
             false
         })
@@ -171,26 +147,38 @@ Second most important piece of Code. GUI Handler
         dataBinding!!.tv2.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, 2, 255, 0, 0, 1, 0))
+                operationList.add(Operation(UNIT_BACKWARD, 255, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             } else if (event.action == MotionEvent.ACTION_UP) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, -1, 0, 0, -1, 1, 0))
+                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             }
             false
         })
@@ -198,26 +186,38 @@ Second most important piece of Code. GUI Handler
         dataBinding!!.tv3.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, 3, 255, 0, 1, 2, 0))
+                operationList.add(Operation(TOOL_FORWARD, 255, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             } else if (event.action == MotionEvent.ACTION_UP) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, -1, 0, 0, -1, 2, 0))
+                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             }
             false
         })
@@ -225,41 +225,49 @@ Second most important piece of Code. GUI Handler
         dataBinding!!.tv4.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, 4, 255, 0, 0, 2, 0))
+                operationList.add(Operation(TOOL_BACKWARD, 255, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             } else if (event.action == MotionEvent.ACTION_UP) {
                 val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(1, 0, -1, 0, 0, -1, 2, 0))
+                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
                 val jsonObject = JSONObject()
                 try {
-                    jsonObject.put("op", JSONArray(Gson().toJson(operationList,
-                            object : TypeToken<List<Operation?>?>() {}.type)))
+                    jsonObject.put(
+                            "op", JSONArray(
+                            Gson().toJson(
+                                    operationList,
+                                    object : TypeToken<List<Operation?>?>() {}.type
+                            )
+                    )
+                    )
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
-                connectedThread?.write("$jsonObject;")
+                deviceConnectedThread?.write("$jsonObject;")
             }
             false
         })
-
-
-
 
         sharedViewModel.onDeviceSelected.observe(homeActivity!!, EventObserver {
             homeViewModel.selectedDevice = it
             findNavController().popBackStack()
             Log.e("karman", it.toString())
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             homeViewModel.setConnectionStatus("Connecting to ${it.deviceName}")
-            createConnectThread = CreateConnectThread(bluetoothAdapter, it.deviceAddress)
-            createConnectThread!!.start()
+            connectDeviceThread = ConnectDeviceThread(it.deviceAddress)
+            connectDeviceThread!!.start()
         })
     }
 
@@ -268,53 +276,50 @@ Second most important piece of Code. GUI Handler
         homeActivity = null
     }
 
-    /* ============================ Thread to Create Bluetooth Connection =================================== */
-    inner class CreateConnectThread(bluetoothAdapter: BluetoothAdapter, address: String?) :
-            Thread() {
+    inner class ConnectDeviceThread(deviceAddress: String?) : Thread() {
         override fun run() {
             // Cancel discovery because it otherwise slows down the connection.
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-            bluetoothAdapter.cancelDiscovery()
+            BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
             try {
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
-                mmSocket?.connect()
+                mBluetoothSocket?.connect()
                 Log.e("Status", "Device connected")
-                handler?.obtainMessage(CONNECTING_STATUS, 1, -1)?.sendToTarget()
+                homeViewModel.messageHandler?.obtainMessage(CONNECTION_STATUS,
+                        CONNECTION_SUCCESSFUL, -1)?.sendToTarget()
             } catch (connectException: IOException) {
-                // Unable to connect; close the socket and return.
+                // Unable to connect. Close the socket and return.
                 try {
-                    mmSocket?.close()
+                    mBluetoothSocket?.close()
                     Log.e("Status", "Cannot connect to device")
-                    handler?.obtainMessage(CONNECTING_STATUS, -1, -1)?.sendToTarget()
-                } catch (closeException: IOException) {
-                    Log.e(ContentValues.TAG, "Could not close the client socket", closeException)
+                    homeViewModel.messageHandler?.obtainMessage(CONNECTION_STATUS,
+                            CONNECTION_FAILED, -1)
+                            ?.sendToTarget()
+                } catch (exception: IOException) {
+                    Log.e("Error", "Could not close the client socket", exception)
                 }
                 return
             }
 
             // The connection attempt succeeded. Perform work associated with
             // the connection in a separate thread.
-            connectedThread = ConnectedThread(mmSocket!!)
-            connectedThread!!.run()
+            deviceConnectedThread = DeviceConnectedThread(mBluetoothSocket!!)
+            deviceConnectedThread!!.run()
         }
 
         // Closes the client socket and causes the thread to finish.
         fun cancel() {
             try {
-                mmSocket?.close()
-            } catch (e: IOException) {
-                Log.e(ContentValues.TAG, "Could not close the client socket", e)
+                mBluetoothSocket?.close()
+            } catch (exception: IOException) {
+                Log.e("Error", "Could not close the client socket", exception)
             }
         }
 
         init {
-            /*
-            Use a temporary object that is later assigned to mmSocket
-            because mmSocket is final.
-             */
-            val bluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
-            var tmp: BluetoothSocket? = null
+            val bluetoothDevice =
+                    BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
+            var tempBluetoothSocket: BluetoothSocket? = null
             val uuid = bluetoothDevice.uuids[0].uuid
             try {
                 /*
@@ -323,20 +328,20 @@ Second most important piece of Code. GUI Handler
                 You should try using other methods i.e. :
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
                  */
-                tmp = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid)
+                tempBluetoothSocket =
+                        bluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid)
             } catch (e: IOException) {
                 Log.e(ContentValues.TAG, "Socket's create() method failed", e)
             }
-            mmSocket = tmp
+            mBluetoothSocket = tempBluetoothSocket
         }
     }
 
-    /* =============================== Thread for Data Transfer =========================================== */
-    inner class ConnectedThread(private val mmSocket: BluetoothSocket) : Thread() {
-        private val mmInStream: InputStream?
-        private val mmOutStream: OutputStream?
+    inner class DeviceConnectedThread(private val mBluetoothSocket: BluetoothSocket) : Thread() {
+        private val mInputStream: InputStream?
+        private val mOutputStream: OutputStream?
         override fun run() {
-            val buffer = ByteArray(1024) // buffer store for the stream
+            val byteArray = ByteArray(1024) // buffer store for the stream
             var bytes = 0 // bytes returned from read()
             // Keep listening to the InputStream until an exception occurs
             while (true) {
@@ -345,12 +350,12 @@ Second most important piece of Code. GUI Handler
                     Read from the InputStream from Arduino until termination character is reached.
                     Then send the whole String message to GUI Handler.
                      */
-                    buffer[bytes] = mmInStream!!.read().toByte()
+                    byteArray[bytes] = mInputStream!!.read().toByte()
                     var readMessage: String
-                    if (buffer[bytes].toString().equals('\n')) { // isko dekhna hai
-                        readMessage = String(buffer, 0, bytes)
+                    if (byteArray[bytes].toInt() == 10) {
+                        readMessage = String(byteArray, 0, bytes)
                         Log.e("Arduino Message", readMessage)
-                        handler?.obtainMessage(MESSAGE_READ, readMessage)?.sendToTarget()
+                        homeViewModel.messageHandler?.obtainMessage(MESSAGE_READ, readMessage)?.sendToTarget()
                         bytes = 0
                     } else {
                         bytes++
@@ -364,9 +369,10 @@ Second most important piece of Code. GUI Handler
 
         /* Call this from the main activity to send data to the remote device */
         fun write(input: String) {
+            Log.e("karman", "Data Sent: $input")
             val bytes = input.toByteArray() //converts entered String into bytes
             try {
-                mmOutStream!!.write(bytes)
+                mOutputStream!!.write(bytes)
             } catch (e: IOException) {
                 Log.e("Send Error", "Unable to send message", e)
             }
@@ -375,36 +381,44 @@ Second most important piece of Code. GUI Handler
         /* Call this from the main activity to shutdown the connection */
         fun cancel() {
             try {
-                mmSocket.close()
+                mBluetoothSocket.close()
             } catch (e: IOException) {
             }
         }
 
         init {
-            var tmpIn: InputStream? = null
-            var tmpOut: OutputStream? = null
+            var tempInputStream: InputStream? = null
+            var tempOutputStream: OutputStream? = null
 
             // Get the input and output streams, using temp objects because
             // member streams are final
             try {
-                tmpIn = mmSocket.inputStream
-                tmpOut = mmSocket.outputStream
+                tempInputStream = mBluetoothSocket.inputStream
+                tempOutputStream = mBluetoothSocket.outputStream
             } catch (e: IOException) {
             }
-            mmInStream = tmpIn
-            mmOutStream = tmpOut
+            mInputStream = tempInputStream
+            mOutputStream = tempOutputStream
         }
     }
 
-    /* ============================ Terminate Connection at BackPress ====================== */
     fun onBackPressed() {
         // Terminate Bluetooth Connection and close app
-        if (createConnectThread != null) {
-            createConnectThread!!.cancel()
+        if (connectDeviceThread != null) {
+            connectDeviceThread!!.cancel()
         }
-        val a = Intent(Intent.ACTION_MAIN)
-        a.addCategory(Intent.CATEGORY_HOME)
-        a.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(a)
+    }
+
+    companion object {
+        const val CONNECTION_STATUS = 1
+        const val MESSAGE_READ = 2
+        const val CONNECTION_SUCCESSFUL = 1
+        const val CONNECTION_FAILED = -1
+
+        const val ALL_OPERATION_OFF = -1
+        const val UNIT_FORWARD = 1
+        const val UNIT_BACKWARD = 2
+        const val TOOL_FORWARD = 3
+        const val TOOL_BACKWARD = 4
     }
 }
