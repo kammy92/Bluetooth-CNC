@@ -28,6 +28,7 @@
             android:clickable="true"
             android:focusable="true"
             android:onClick="@{()->appClickListener.onBluetoothConnectClick()}"
+            app:layout_constraintBottom_toTopOf="@+id/cl_current_operation"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -53,7 +54,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:text="@{viewModel.connectionStatus}"
-                android:textColor="@{viewModel.isConnectionSuccessful() ? @color/blue : @color/grey}"
+                android:textColor="@{viewModel.isConnectionSuccessful() ? @color/blue : @color/white}"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -65,29 +66,52 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-        <TextView
-            android:id="@+id/tv_text"
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cl_current_operation"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@{viewModel.text}"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-
-        <TextView
-            android:id="@+id/tv_device_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@{viewModel.deviceStatus}"
-            android:textSize="16sp"
+            android:layout_margin="20dp"
+            android:background="@drawable/button_bg"
+            android:clickable="false"
+            android:focusable="false"
             app:layout_constraintBottom_toTopOf="@+id/ll_buttons"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cl_connection" />
+            app:layout_constraintTop_toBottomOf="@+id/cl_connection">
+
+            <TextView
+                android:id="@+id/tv_current_operation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="4dp"
+                android:text="Current Operation"
+                android:textColor="@color/blue"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/tv_device_status"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <TextView
+                android:id="@+id/tv_device_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
+                android:text="@{viewModel.deviceStatus}"
+                android:textColor="@color/blue"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                app:layout_constraintTop_toBottomOf="@+id/tv_current_operation"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:text="UNIT FORWARD" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
         <LinearLayout
@@ -97,7 +121,7 @@
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_device_status">
+            app:layout_constraintTop_toBottomOf="@+id/cl_current_operation">
 
 
             <TextView
