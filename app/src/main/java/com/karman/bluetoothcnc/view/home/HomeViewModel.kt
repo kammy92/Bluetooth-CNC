@@ -11,6 +11,11 @@ import com.google.gson.reflect.TypeToken
 import com.karman.bluetoothcnc.base.BaseViewModel
 import com.karman.bluetoothcnc.model.Device
 import com.karman.bluetoothcnc.model.Operation
+import com.karman.bluetoothcnc.model.Operation.Companion.ALL_OPERATION_OFF
+import com.karman.bluetoothcnc.model.Operation.Companion.TOOL_BACKWARD
+import com.karman.bluetoothcnc.model.Operation.Companion.TOOL_FORWARD
+import com.karman.bluetoothcnc.model.Operation.Companion.UNIT_BACKWARD
+import com.karman.bluetoothcnc.model.Operation.Companion.UNIT_FORWARD
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -46,7 +51,7 @@ class HomeViewModel : BaseViewModel() {
         speedUnitBackward.value = "255"
         speedToolForward.value = "255"
         speedToolBackward.value = "255"
-        setManualOperation(HomeFragment.ALL_OPERATION_OFF)
+        setManualOperation(ALL_OPERATION_OFF)
 
         deviceMessageHandler = object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(message: Message) {
@@ -80,25 +85,25 @@ class HomeViewModel : BaseViewModel() {
 
     fun setManualOperation(operationType: Int) {
         _operationList.value = when (operationType) {
-            HomeFragment.ALL_OPERATION_OFF -> {
-                arrayListOf(Operation(HomeFragment.ALL_OPERATION_OFF, 0))
+            ALL_OPERATION_OFF -> {
+                arrayListOf(Operation(ALL_OPERATION_OFF, 0))
             }
-            HomeFragment.UNIT_FORWARD -> {
-                arrayListOf(Operation(HomeFragment.UNIT_FORWARD, speedUnitForward.value!!.toInt()))
+            UNIT_FORWARD -> {
+                arrayListOf(Operation(UNIT_FORWARD, speedUnitForward.value!!.toInt()))
             }
-            HomeFragment.UNIT_BACKWARD -> {
+            UNIT_BACKWARD -> {
                 arrayListOf(
-                        Operation(HomeFragment.UNIT_BACKWARD, speedUnitBackward.value!!.toInt()))
+                        Operation(UNIT_BACKWARD, speedUnitBackward.value!!.toInt()))
             }
-            HomeFragment.TOOL_FORWARD -> {
-                arrayListOf(Operation(HomeFragment.TOOL_FORWARD, speedToolForward.value!!.toInt()))
+            TOOL_FORWARD -> {
+                arrayListOf(Operation(TOOL_FORWARD, speedToolForward.value!!.toInt()))
             }
-            HomeFragment.TOOL_BACKWARD -> {
+            TOOL_BACKWARD -> {
                 arrayListOf(
-                        Operation(HomeFragment.TOOL_BACKWARD, speedToolBackward.value!!.toInt()))
+                        Operation(TOOL_BACKWARD, speedToolBackward.value!!.toInt()))
             }
             else -> {
-                arrayListOf(Operation(HomeFragment.ALL_OPERATION_OFF, 0))
+                arrayListOf(Operation(ALL_OPERATION_OFF, 0))
             }
         }
     }

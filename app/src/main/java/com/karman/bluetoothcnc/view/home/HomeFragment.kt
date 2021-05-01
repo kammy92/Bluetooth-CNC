@@ -4,24 +4,24 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothSocket
 import android.os.Bundle
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.karman.bluetoothcnc.R
 import com.karman.bluetoothcnc.SharedViewModel
 import com.karman.bluetoothcnc.base.BaseFragment
 import com.karman.bluetoothcnc.databinding.FragmentHomeBinding
+import com.karman.bluetoothcnc.db.DatabaseBuilder
+import com.karman.bluetoothcnc.db.DatabaseHelperImpl
 import com.karman.bluetoothcnc.listener.AppClickListener
 import com.karman.bluetoothcnc.model.Operation
+import com.karman.bluetoothcnc.model.Operation.Companion.ALL_OPERATION_OFF
+import com.karman.bluetoothcnc.model.Operation.Companion.TOOL_BACKWARD
+import com.karman.bluetoothcnc.model.Operation.Companion.TOOL_FORWARD
+import com.karman.bluetoothcnc.model.Operation.Companion.UNIT_BACKWARD
+import com.karman.bluetoothcnc.model.Operation.Companion.UNIT_FORWARD
 import com.karman.bluetoothcnc.util.EventObserver
 import com.karman.bluetoothcnc.view.MainActivity
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,102 +45,38 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
             (baseActivity as MainActivity).shouldShowBottomNavigation(false)
         }
 
-        override fun onUnitForwardPressed() {
-            viewModel.setManualOperation(UNIT_FORWARD)
+        override fun onManualOperationButtonPressed(operationType: Int) {
+            viewModel.setManualOperation(operationType)
         }
 
-        override fun onUnitBackwardPressed() {
-            viewModel.setManualOperation(UNIT_BACKWARD)
-        }
-
-        override fun onToolForwardPressed() {
-            viewModel.setManualOperation(TOOL_FORWARD)
-        }
-
-        override fun onToolBackwardPressed() {
-            viewModel.setManualOperation(TOOL_BACKWARD)
-        }
-
-        override fun onAllButtonReleased() {
+        override fun onManualOperationButtonReleased() {
             viewModel.setManualOperation(ALL_OPERATION_OFF)
+        }
+
+        override fun onStartAutoOperationsClick() {
+            val operationList: ArrayList<Operation> = ArrayList<Operation>()
+            operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
+            operationList.add(Operation(TOOL_FORWARD, 255, 2000, 300, 300))
+            operationList.add(Operation(UNIT_FORWARD, 150, 300, 300, 300))
+            operationList.add(Operation(TOOL_BACKWARD, 150, 700, 300, 300))
+            operationList.add(Operation(TOOL_FORWARD, 150, 200, 300, 300))
+            operationList.add(Operation(UNIT_FORWARD, 150, 2000, 300, 300))
+            operationList.add(Operation(TOOL_BACKWARD, 150, 300, 300, 300))
+            operationList.add(Operation(UNIT_BACKWARD, 255, 5000, 300, 300))
+            viewModel.setOperationList(operationList)
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val dbHelper = DatabaseHelperImpl(DatabaseBuilder.getInstance(baseActivity!!))
+
         dataBinding!!.appClickListener = appClickListener
         viewModel.operationList.observe(viewLifecycleOwner, { operationList ->
             operationList?.let {
                 deviceConnectedThread?.write(
                         viewModel.getOperationJson(it) + TERMINATION_CHARACTER)
             }
-        })
-
-
-
-
-
-        dataBinding!!.tvSendData.setOnClickListener {
-            val operationList: ArrayList<Operation> = ArrayList<Operation>()
-            operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
-            operationList.add(Operation(TOOL_FORWARD, 255, 2000, 300, 300))
-            operationList.add(Operation(UNIT_FORWARD, 180, 300, 300, 300))
-            operationList.add(Operation(TOOL_BACKWARD, 180, 700, 300, 300))
-            operationList.add(Operation(TOOL_FORWARD, 180, 200, 300, 300))
-            operationList.add(Operation(UNIT_FORWARD, 180, 2000, 300, 300))
-            operationList.add(Operation(TOOL_BACKWARD, 180, 300, 300, 300))
-            operationList.add(Operation(UNIT_BACKWARD, 255, 5000, 300, 300))
-
-//            operationList.add(Operation( 5, 255, 3000, 1, 1, 500))
-//            operationList.add(Operation( 7, 255, 2000, 1, 2, 500))
-//            operationList.add(Operation( 9, 200, 500, 1, 1, 500))
-//            operationList.add(Operation( 12, 200, 1000, 0, 2, 500))
-//            operationList.add(Operation(0, 500, 11, 200, 200, 1, 2, 500))
-//            operationList.add(Operation(0, 500, 9, 200, 2000, 1, 1, 500))
-////            operationList.add(Operation(0, 500, 12, 200, 200, 0, 2, 500))
-////            operationList.add(Operation(0, 500, 6, 255, 5000, 0, 1, 500))
-            val jsonObject = JSONObject()
-            try {
-                jsonObject.put(
-                        "op", JSONArray(Gson().toJson(operationList,
-                        object : TypeToken<List<Operation?>?>() {}.type)))
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-            deviceConnectedThread?.write("$jsonObject;")
-        }
-
-        dataBinding!!.tvUnitForward.setOnTouchListener(OnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                appClickListener.onUnitForwardPressed()
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                appClickListener.onAllButtonReleased()
-            }
-            false
-        })
-        dataBinding!!.tvUnitBackward.setOnTouchListener(OnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                appClickListener.onUnitBackwardPressed()
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                appClickListener.onAllButtonReleased()
-            }
-            false
-        })
-        dataBinding!!.tvToolForward.setOnTouchListener(OnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                appClickListener.onToolForwardPressed()
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                appClickListener.onAllButtonReleased()
-            }
-            false
-        })
-        dataBinding!!.tvToolBackward.setOnTouchListener(OnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                appClickListener.onToolBackwardPressed()
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                appClickListener.onAllButtonReleased()
-            }
-            false
         })
 
         sharedViewModel.onDeviceSelected.observe(baseActivity!!, EventObserver {
@@ -274,8 +210,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
         }
     }
 
-    fun onBackPressed() {
-        // Terminate Bluetooth Connection and close app
+    override fun onDestroyView() {
+        super.onDestroyView()
         if (connectDeviceThread != null) {
             connectDeviceThread!!.cancel()
         }
@@ -289,12 +225,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
         const val MESSAGE_READ = 2
         const val CONNECTION_SUCCESSFUL = 1
         const val CONNECTION_FAILED = -1
-
-        const val ALL_OPERATION_OFF = -1
-        const val UNIT_FORWARD = 1
-        const val UNIT_BACKWARD = 2
-        const val TOOL_FORWARD = 3
-        const val TOOL_BACKWARD = 4
 
         const val TERMINATION_CHARACTER = ";"
     }

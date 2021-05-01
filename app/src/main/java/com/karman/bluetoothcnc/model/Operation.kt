@@ -23,4 +23,12 @@ class Operation(
 
     constructor(operationType: Int, operationSpeed: Int, operationDuration: Int) :
             this(operationType, operationSpeed, operationDuration, 0, 0)
+
+    companion object {
+        const val ALL_OPERATION_OFF = -1
+        const val UNIT_FORWARD = 1
+        const val UNIT_BACKWARD = 2
+        const val TOOL_FORWARD = 3
+        const val TOOL_BACKWARD = 4
+    }
 }

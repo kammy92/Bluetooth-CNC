@@ -6,6 +6,10 @@
     <data>
 
         <variable
+            name="operation"
+            type="com.karman.bluetoothcnc.model.Operation" />
+
+        <variable
             name="appClickListener"
             type="com.karman.bluetoothcnc.listener.AppClickListener" />
 
@@ -120,7 +124,7 @@
             android:layout_margin="16dp"
             android:background="@drawable/manual_operation_bg"
             android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:paddingBottom="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cl_display_screen">
@@ -167,7 +171,9 @@
                 app:layout_constraintBottom_toTopOf="@+id/guideline_horizontal"
                 app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_speed_unit_forward" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_speed_unit_forward"
+                app:setAppClickListener="@{appClickListener}"
+                app:setOperationType="@{operation.UNIT_FORWARD}" />
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline_vertical"
@@ -218,7 +224,9 @@
                 app:layout_constraintBottom_toTopOf="@+id/guideline_horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
-                app:layout_constraintTop_toBottomOf="@+id/tv_speed_unit_backward" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_speed_unit_backward"
+                app:setAppClickListener="@{appClickListener}"
+                app:setOperationType="@{operation.UNIT_BACKWARD}" />
 
 
             <androidx.constraintlayout.widget.Guideline
@@ -272,7 +280,9 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_speed_tool_forward" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_speed_tool_forward"
+                app:setAppClickListener="@{appClickListener}"
+                app:setOperationType="@{operation.TOOL_FORWARD}" />
 
             <TextView
                 android:id="@+id/tv_speed_tool_backward"
@@ -317,18 +327,27 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/guideline_vertical"
-                app:layout_constraintTop_toBottomOf="@+id/tv_speed_tool_backward" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_speed_tool_backward"
+                app:setAppClickListener="@{appClickListener}"
+                app:setOperationType="@{operation.TOOL_BACKWARD}" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
-            android:id="@+id/tv_send_data"
+            android:id="@+id/tv_start_operations"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="Send Data"
+            android:background="@drawable/manual_operation_button_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="@{()->appClickListener.onStartAutoOperationsClick()}"
+            android:padding="12dp"
+            android:text="START AUTO OPERATIONS"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cl_manual_operations" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
