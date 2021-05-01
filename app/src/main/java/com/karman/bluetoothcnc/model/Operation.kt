@@ -17,4 +17,10 @@ class Operation(
         @field:SerializedName("s") var operationSpeed: Int,
         @field:SerializedName("d") var operationDuration: Int,
         @field:SerializedName("sd") var operationStartDelay: Int,
-        @field:SerializedName("ed") var operationEndDelay: Int)
+        @field:SerializedName("ed") var operationEndDelay: Int) {
+    constructor(operationType: Int, operationSpeed: Int) :
+            this(operationType, operationSpeed, -1, 0, 0)
+
+    constructor(operationType: Int, operationSpeed: Int, operationDuration: Int) :
+            this(operationType, operationSpeed, operationDuration, 0, 0)
+}

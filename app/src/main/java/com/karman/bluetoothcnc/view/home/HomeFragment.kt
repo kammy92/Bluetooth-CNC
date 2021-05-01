@@ -44,11 +44,42 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
             )
             (baseActivity as MainActivity).shouldShowBottomNavigation(false)
         }
+
+        override fun onUnitForwardPressed() {
+            viewModel.setManualOperation(UNIT_FORWARD)
+        }
+
+        override fun onUnitBackwardPressed() {
+            viewModel.setManualOperation(UNIT_BACKWARD)
+        }
+
+        override fun onToolForwardPressed() {
+            viewModel.setManualOperation(TOOL_FORWARD)
+        }
+
+        override fun onToolBackwardPressed() {
+            viewModel.setManualOperation(TOOL_BACKWARD)
+        }
+
+        override fun onAllButtonReleased() {
+            viewModel.setManualOperation(ALL_OPERATION_OFF)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dataBinding!!.appClickListener = appClickListener
+        viewModel.operationList.observe(viewLifecycleOwner, { operationList ->
+            operationList?.let {
+                deviceConnectedThread?.write(
+                        viewModel.getOperationJson(it) + TERMINATION_CHARACTER)
+            }
+        })
+
+
+
+
+
         dataBinding!!.tvSendData.setOnClickListener {
             val operationList: ArrayList<Operation> = ArrayList<Operation>()
             operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
@@ -79,160 +110,35 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
             deviceConnectedThread?.write("$jsonObject;")
         }
 
-
-
-        dataBinding!!.tv1.setOnTouchListener(OnTouchListener { v, event ->
+        dataBinding!!.tvUnitForward.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(UNIT_FORWARD, 255, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onUnitForwardPressed()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onAllButtonReleased()
             }
             false
         })
-
-        dataBinding!!.tv2.setOnTouchListener(OnTouchListener { v, event ->
+        dataBinding!!.tvUnitBackward.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(UNIT_BACKWARD, 255, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onUnitBackwardPressed()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onAllButtonReleased()
             }
             false
         })
-
-        dataBinding!!.tv3.setOnTouchListener(OnTouchListener { v, event ->
+        dataBinding!!.tvToolForward.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(TOOL_FORWARD, 255, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onToolForwardPressed()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onAllButtonReleased()
             }
             false
         })
-
-        dataBinding!!.tv4.setOnTouchListener(OnTouchListener { v, event ->
+        dataBinding!!.tvToolBackward.setOnTouchListener(OnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(TOOL_BACKWARD, 255, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onToolBackwardPressed()
             } else if (event.action == MotionEvent.ACTION_UP) {
-                val operationList: ArrayList<Operation> = ArrayList<Operation>()
-                operationList.add(Operation(ALL_OPERATION_OFF, 0, -1, 0, 0))
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put(
-                            "op", JSONArray(
-                            Gson().toJson(
-                                    operationList,
-                                    object : TypeToken<List<Operation?>?>() {}.type
-                            )
-                    )
-                    )
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                deviceConnectedThread?.write("$jsonObject;")
+                appClickListener.onAllButtonReleased()
             }
             false
         })
@@ -389,5 +295,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
         const val UNIT_BACKWARD = 2
         const val TOOL_FORWARD = 3
         const val TOOL_BACKWARD = 4
+
+        const val TERMINATION_CHARACTER = ";"
     }
 }
