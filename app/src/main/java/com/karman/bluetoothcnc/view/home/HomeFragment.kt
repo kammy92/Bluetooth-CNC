@@ -11,17 +11,10 @@ import com.karman.bluetoothcnc.R
 import com.karman.bluetoothcnc.SharedViewModel
 import com.karman.bluetoothcnc.base.BaseFragment
 import com.karman.bluetoothcnc.databinding.FragmentHomeBinding
-import com.karman.bluetoothcnc.db.DatabaseBuilder
-import com.karman.bluetoothcnc.db.DatabaseHelperImpl
 import com.karman.bluetoothcnc.listener.AppClickListener
 import com.karman.bluetoothcnc.model.Operation
 import com.karman.bluetoothcnc.model.Operation.Companion.ALL_OPERATION_OFF
-import com.karman.bluetoothcnc.model.Operation.Companion.TOOL_BACKWARD
-import com.karman.bluetoothcnc.model.Operation.Companion.TOOL_FORWARD
-import com.karman.bluetoothcnc.model.Operation.Companion.UNIT_BACKWARD
-import com.karman.bluetoothcnc.model.Operation.Companion.UNIT_FORWARD
 import com.karman.bluetoothcnc.util.EventObserver
-import com.karman.bluetoothcnc.view.MainActivity
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -42,11 +35,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
             findNavController().navigate(
                     R.id.action_navigation_home_to_deviceListFragment
             )
-            (baseActivity as MainActivity).shouldShowBottomNavigation(false)
         }
 
         override fun onManualOperationButtonPressed(operationType: Int) {
             viewModel.setManualOperation(operationType)
+            viewModel.insertOperation(
+                    com.karman.bluetoothcnc.room.Operation(1, 255, 2000, 500, 500, 500))
         }
 
         override fun onManualOperationButtonReleased() {
@@ -55,27 +49,42 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
 
         override fun onStartAutoOperationsClick() {
             val operationList: ArrayList<Operation> = ArrayList<Operation>()
-            operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
-            operationList.add(Operation(TOOL_FORWARD, 255, 2000, 300, 300))
-            operationList.add(Operation(UNIT_FORWARD, 150, 300, 300, 300))
-            operationList.add(Operation(TOOL_BACKWARD, 150, 700, 300, 300))
-            operationList.add(Operation(TOOL_FORWARD, 150, 200, 300, 300))
-            operationList.add(Operation(UNIT_FORWARD, 150, 2000, 300, 300))
-            operationList.add(Operation(TOOL_BACKWARD, 150, 300, 300, 300))
-            operationList.add(Operation(UNIT_BACKWARD, 255, 5000, 300, 300))
+            viewModel.allOperationsFromDB.value?.let {
+                for (operation in it) {
+                    operationList.add(
+                            Operation(
+                                    operation.type, operation.speed,
+                                    operation.duration, operation.startDelay, operation.endDelay
+                            )
+                    )
+                }
+            }
+//            operationList.add(Operation(UNIT_FORWARD, 255, 3000, 300, 300))
+//            operationList.add(Operation(TOOL_FORWARD, 255, 2000, 300, 300))
+//            operationList.add(Operation(UNIT_FORWARD, 150, 300, 300, 300))
+//            operationList.add(Operation(TOOL_BACKWARD, 150, 700, 300, 300))
+//            operationList.add(Operation(TOOL_FORWARD, 150, 200, 300, 300))
+//            operationList.add(Operation(UNIT_FORWARD, 150, 2000, 300, 300))
+//            operationList.add(Operation(TOOL_BACKWARD, 150, 300, 300, 300))
+//            operationList.add(Operation(UNIT_BACKWARD, 255, 5000, 300, 300))
             viewModel.setOperationList(operationList)
+        }
+
+        override fun onViewSavedOperationsClick() {
+            findNavController().navigate(
+                    R.id.action_navigation_home_to_operationListFragment
+            )
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val dbHelper = DatabaseHelperImpl(DatabaseBuilder.getInstance(baseActivity!!))
-
         dataBinding!!.appClickListener = appClickListener
         viewModel.operationList.observe(viewLifecycleOwner, { operationList ->
             operationList?.let {
                 deviceConnectedThread?.write(
-                        viewModel.getOperationJson(it) + TERMINATION_CHARACTER)
+                        viewModel.getOperationJson(it) + TERMINATION_CHARACTER
+                )
             }
         })
 
@@ -85,6 +94,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
             viewModel.setConnectionStatus("Connecting to ${it.deviceName}")
             connectDeviceThread = ConnectDeviceThread(it.deviceAddress)
             connectDeviceThread!!.start()
+        })
+        viewModel.allOperationsFromDB.observe(viewLifecycleOwner, {
+            it
         })
     }
 
@@ -97,16 +109,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
                 // This call blocks run until it succeeds or throws an exception.
                 mBluetoothSocket?.connect()
                 Log.e(LOG_STATUS_TAG, "Device connected Successfully")
-                viewModel.deviceMessageHandler?.obtainMessage(CONNECTION_STATUS,
-                        CONNECTION_SUCCESSFUL, -1)?.sendToTarget()
+                viewModel.deviceMessageHandler?.obtainMessage(
+                        CONNECTION_STATUS, CONNECTION_SUCCESSFUL, -1
+                )?.sendToTarget()
             } catch (connectException: IOException) {
                 // Unable to connect. Close the socket and return.
                 try {
                     mBluetoothSocket?.close()
                     Log.e(LOG_STATUS_TAG, "Cannot connect to device")
-                    viewModel.deviceMessageHandler?.obtainMessage(CONNECTION_STATUS,
-                            CONNECTION_FAILED, -1)
-                            ?.sendToTarget()
+                    viewModel.deviceMessageHandler?.obtainMessage(
+                            CONNECTION_STATUS, CONNECTION_FAILED, -1
+                    )?.sendToTarget()
                 } catch (exception: IOException) {
                     Log.e(LOG_ERROR_TAG, "Unable to Close Client Socket", exception)
                 }

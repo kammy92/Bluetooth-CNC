@@ -345,9 +345,27 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/tv_saved_operations"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cl_manual_operations" />
+
+        <TextView
+            android:id="@+id/tv_saved_operations"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/manual_operation_button_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:onClick="@{()->appClickListener.onViewSavedOperationsClick()}"
+            android:padding="12dp"
+            android:text="VIEW SAVED OPERATIONS"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

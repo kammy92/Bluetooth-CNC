@@ -12,7 +12,7 @@ import com.google.gson.annotations.SerializedName
 // Operation Duration: Duration in ms, -1 if continuous manual
 // Operation Start Delay: Start Delay in ms
 // Operation End Delay: End Delay in ms
-class Operation(
+data class Operation(
         @field:SerializedName("t") var operationType: Int,
         @field:SerializedName("s") var operationSpeed: Int,
         @field:SerializedName("d") var operationDuration: Int,

@@ -5,4 +5,8 @@ interface AppClickListener {
     fun onManualOperationButtonPressed(operationType:Int)
     fun onManualOperationButtonReleased()
     fun onStartAutoOperationsClick()
+    fun onViewSavedOperationsClick()
+    interface OperationClickListener {
+        fun onAddOperationCLick()
+    }
 }

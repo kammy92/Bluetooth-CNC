@@ -20,7 +20,7 @@ import com.karman.bluetoothcnc.base.BaseAdapter
 import com.karman.bluetoothcnc.base.BaseItemClickListener
 
 fun <T> RecyclerView.setUpWithBaseAdapter(layoutResId: Int,
-        itemList: List<T>, itemClickListener: BaseItemClickListener<T>) {
+        itemList: List<T>, itemClickListener: BaseItemClickListener<T>? = null) {
     this.itemAnimator = DefaultItemAnimator()
     this.setHasFixedSize(true)
     this.adapter = BaseAdapter(layoutResId, itemList, itemClickListener)

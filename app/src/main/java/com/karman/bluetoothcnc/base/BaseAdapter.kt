@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.karman.bluetoothcnc.BR
 
 class BaseAdapter<T> constructor(@LayoutRes private val layoutResourceId: Int,
-        private val itemList: List<T>, private val itemClickListener: BaseItemClickListener<T>)
+        private val itemList: List<T>, private val itemClickListener: BaseItemClickListener<T>?)
     : RecyclerView.Adapter<BaseAdapter<T>.Holder>() {
 
     override fun getItemCount() = itemList.size
@@ -29,7 +29,9 @@ class BaseAdapter<T> constructor(@LayoutRes private val layoutResourceId: Int,
         fun bind(position: Int, item: T) {
             binding.setVariable(BR.position, position)
             binding.setVariable(BR.item, item)
-            binding.setVariable(BR.itemClickListener, itemClickListener)
+            itemClickListener?.let {
+                binding.setVariable(BR.itemClickListener, it)
+            }
         }
     }
 }

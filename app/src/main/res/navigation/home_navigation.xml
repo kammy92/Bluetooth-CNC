@@ -10,6 +10,9 @@
             android:id="@+id/action_navigation_home_to_deviceListFragment"
             app:destination="@id/deviceListFragment" />
 
+        <action
+            android:id="@+id/action_navigation_home_to_operationListFragment"
+            app:destination="@id/operationListFragment" />
     </fragment>
 
     <fragment
