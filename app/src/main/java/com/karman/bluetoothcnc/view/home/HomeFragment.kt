@@ -39,8 +39,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
 
         override fun onManualOperationButtonPressed(operationType: Int) {
             viewModel.setManualOperation(operationType)
-            viewModel.insertOperation(
-                    com.karman.bluetoothcnc.room.Operation(1, 255, 2000, 500, 500, 500))
         }
 
         override fun onManualOperationButtonReleased() {
@@ -223,8 +221,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding, HomeViewModel>
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDetach() {
+        super.onDetach()
         if (connectDeviceThread != null) {
             connectDeviceThread!!.cancel()
         }
